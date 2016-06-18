@@ -5,6 +5,8 @@ function ionAudioPlay($ionicGesture, $timeout, $rootScope) {
         restrict: 'A',
         require: '^^ionAudioControls',
         link:  function (scope, element, attrs, controller) {
+            console.log("printing controller");
+            console.log(controller);
             var isLoading, debounce, currentStatus = 0;
 
             var init = function() {
@@ -20,8 +22,19 @@ function ionAudioPlay($ionicGesture, $timeout, $rootScope) {
                 element.text((element.text() == attrs.textPlay ? attrs.textPause : attrs.textPlay));
             };
 
-            var togglePlaying = function() {
-                element.toggleClass('ion-play ion-pause');
+            var togglePlaying = function(play) {
+                if (typeof play !== "undefined"){
+                    if (play){
+                        element.removeClass('ion-pause');
+                        element.addClass('ion-play');
+                    } else {
+                        element.removeClass('ion-play');
+                        element.addClass('ion-pause');
+                    }
+                } else {
+                    element.toggleClass('ion-play ion-pause');
+                    
+                }
                 setText();
             };
 

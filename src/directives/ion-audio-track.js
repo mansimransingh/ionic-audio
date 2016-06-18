@@ -16,18 +16,20 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         controller: ['$scope', '$element', function($scope, $element){
             var controller = this;
 
-            var init = function(newTrack, oldTrack) {
-                if (!newTrack || !newTrack.url) return;
+            
+            
+            // var init = function(newTrack, oldTrack) {
+            //     if (!newTrack || !newTrack.url) return;
 
-                newTrack.progress = 0;
-                newTrack.status = 0;
-                newTrack.duration = -1;
-                if (oldTrack && oldTrack.id !== undefined) newTrack.id = oldTrack.id; 
+            //     newTrack.progress = 0;
+            //     newTrack.status = 0;
+            //     newTrack.duration = -1;
+            //     if (oldTrack && oldTrack.id !== undefined) newTrack.id = oldTrack.id; 
 
-                if (MediaManager) {
-                    MediaManager.add(newTrack, playbackSuccess, null, statusChange, progressChange);
-                }
-            };
+            //     if (MediaManager) {
+            //         MediaManager.add(newTrack, playbackSuccess, null, statusChange, progressChange);
+            //     }
+            // };
 
             var playbackSuccess = function() {
                 $scope.track.status = 0;
@@ -63,15 +65,15 @@ function ionMediaPlayer(MediaManager, $rootScope) {
                 return $scope.track.id;
             };
 
-            var unbindWatcher = $scope.$watch('track', function(newTrack, oldTrack) {  
-                if (newTrack === undefined) return;         
-                MediaManager.stop();
-                init(newTrack, oldTrack);
-            });
+            // var unbindWatcher = $scope.$watch('options.tracks', function(newTracks, oldTracks) {  
+                // if (newTrack === undefined) return;         
+                // MediaManager.stop();
+                // init(newTrack, oldTracks);
+            // });
 
             $scope.$on('$destroy', function() {
-                unbindWatcher();
-                MediaManager.destroy();
+                // unbindWatcher();
+                // MediaManager.destroy();
             });
         }]
     };
