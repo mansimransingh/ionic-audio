@@ -9,15 +9,19 @@ angular.module('ionic-audio').directive('ionAudioControls', function() {
 function ionAudioControlsCtrl($scope, $element) {
         var spinnerElem = $element.find('ion-spinner'), hasLoaded, self = this;
 
-        spinnerElem.addClass('ng-hide');
-
-        this.toggleSpinner = function() {
-          spinnerElem.toggleClass('ng-hide');
+        this.toggleSpinner = function(state) {
+          if (state){
+            spinnerElem.addClass('ng-hide');
+          } else {
+            spinnerElem.removeClass('ng-hide');
+          }
         };
+
+        toggleSpinner(true);
 
         this.play = function() {
           if (!hasLoaded) {
-              self.toggleSpinner();
+              self.toggleSpinner(false);
           }
           this.start();
         };
@@ -29,7 +33,7 @@ function ionAudioControlsCtrl($scope, $element) {
                   break;
               case 2: // Media.MEDIA_RUNNING
                   if (!hasLoaded) {
-                      self.toggleSpinner();
+                      self.toggleSpinner(false);
                       hasLoaded = true;
                   }
                   break;
