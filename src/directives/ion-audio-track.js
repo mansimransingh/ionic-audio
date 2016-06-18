@@ -6,7 +6,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         template: '<ng-transclude></ng-transclude>',
         restrict: 'E',
         scope: {
-            track: '=',
+            tracks: '=',
             togglePlayback: '='
         },
         require: 'ionMediaPlayer',
