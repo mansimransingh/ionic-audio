@@ -16,4 +16,4 @@ gulp.task('compress', function() {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('build', ['concat', 'compress']);
+gulp.task('build', ['concat']);
