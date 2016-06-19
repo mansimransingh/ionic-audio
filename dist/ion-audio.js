@@ -44,6 +44,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         callbacks.onError = function(){};
         callbacks.onStatusChange = function(){};
         callbacks.onProgress = function(){};
+        callbacks.trackChanged = function(){};
     var vm = this;
 
     if (!$window.cordova && !$window.Media) {
@@ -81,7 +82,11 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
     };
 
     vm.getTrack = function(){
-        return currentTrack;
+        return tracks[currentTrackIndex];
+    };
+
+    vm.isPlaying = function(){
+        return isPlaying;
     };
 
      /*
@@ -98,6 +103,8 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         for (var i=0, l= tracklist.length; i < l; i++){
             vm.add(tracklist[i]);
         }
+        currentTrack = undefined;
+        trackChanged();
         if (play === true){
             vm.play(0);
         }
@@ -114,11 +121,13 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
          art: 'img/The_Police_Greatest_Hits.jpg'
      }
      */
-    vm.setCallbacks = function(playbackSuccess, playbackError, statusChange, progressChange){
+    vm.setCallbacks = function(playbackSuccess, playbackError, statusChange, progressChange, trackChanged){
+        console.log("set new callbacks");
         callbacks.onSuccess = playbackSuccess;
         callbacks.onError = playbackError;
         callbacks.onStatusChange = statusChange;
         callbacks.onProgress = progressChange;
+        callbacks.trackChanged = trackChanged;
     };
 
 
@@ -158,6 +167,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
                 vm.stop();
                 currentTrack = tracks[index];
                 currentTrackIndex = index;
+                trackChanged();
                 vm.playTrack();
             }
         } else {
@@ -167,6 +177,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
                 }
             } else {
                 currentTrack = tracks[currentTrackIndex];
+                trackChanged();
                 vm.playTrack();
             }
         }
@@ -231,6 +242,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
             currentMedia.release();
             currentMedia = undefined;
             currentTrack = undefined;
+            trackChanged();
         }
     };
 
@@ -268,7 +280,15 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         }
     };
 
+    var trackChanged = function(){
+        console.log("calling track changed");
+        if (angular.isFunction(callbacks.trackChanged)){
+            callbacks.trackChanged();
+        }
+    };
+
     function onProgress(progress, duration){
+        $rootScope.$broadcast('ionic-audio:progress', { progress:progress, duration:duration });
         if (angular.isFunction(callbacks.onProgress)){
             callbacks.onProgress(progress, duration);
         }
@@ -339,16 +359,53 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         require: 'ionMediaPlayer',
         link: function(scope, element, attr, controller){
              controller.hasOwnProgressBar = element.find('ion-audio-progress-bar').length > 0;
+             controller.updateTrack();
+             controller.setCallbacks();
         },
         controller: ['$scope', '$element', function($scope, $element){
             var controller = this;
+            $scope.watchProperties = {};
+                $scope.watchProperties.state = 0;
+                $scope.watchProperties.duration = -1;
+                $scope.watchProperties.progress = -1;
 
-            MediaManager.setCallbacks(playbackSuccess, null, statusChange, progressChange);
+            var playbackSuccess = function() {
+                controller.updateTrack();
+                $scope.track.status = 0;
+                $scope.track.progress = 0;
+            };
+            var statusChange = function(status) {
+                controller.updateTrack();
+                $scope.track.status = status;
+                $scope.watchProperties.status = status;
+                console.log("ion-media-player: status changed: "+status);
+            };
+            var progressChange = function(progress, duration) {
+                $scope.track.progress = progress;
+                $scope.track.duration = duration;
+                $scope.watchProperties.duration = duration;
+                $scope.watchProperties.progress = progress;
+                console.log("ion-media-player: preogress changed: "+progress +" : "+duration);
+            };
+            var notifyProgressBar = function() {
+                $rootScope.$broadcast('ionic-audio:trackChange', $scope.track);
+            };
 
-            var updateTrack = function(){
+            var trackChanged = function(){
+                controller.updateTrack();
+            };
+
+            this.setCallbacks = function(){
+                MediaManager.setCallbacks(playbackSuccess, null, statusChange, progressChange, trackChanged);
+            };
+            
+            this.updateTrack = function(){
                 $scope.track = MediaManager.getTrack();
-            };            
-            updateTrack();
+                notifyProgressBar();
+                console.log("updating track again");
+                console.log($scope.track);
+             };
+            this.updateTrack();
             // var init = function(newTrack, oldTrack) {
             //     if (!newTrack || !newTrack.url) return;
 
@@ -362,21 +419,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             //     }
             // };
 
-            var playbackSuccess = function() {
-                $scope.track.status = 0;
-                $scope.track.progress = 0;
-            };
-            var statusChange = function(status) {
-                $scope.track.status = status;
-                updateTrack();
-            };
-            var progressChange = function(progress, duration) {
-                $scope.track.progress = progress;
-                $scope.track.duration = duration;
-            };
-            var notifyProgressBar = function() {
-                $rootScope.$broadcast('ionic-audio:trackChange', $scope.track);
-            };
+
 
             this.seekTo = function(pos) {
                 MediaManager.seekTo(pos);
@@ -396,17 +439,6 @@ function ionMediaPlayer(MediaManager, $rootScope) {
 
                 return $scope.track.id;
             };
-
-            // var unbindWatcher = $scope.$watch('options.tracks', function(newTracks, oldTracks) {  
-                // if (newTrack === undefined) return;         
-                // MediaManager.stop();
-                // init(newTrack, oldTracks);
-            // });
-
-            $scope.$on('$destroy', function() {
-                // unbindWatcher();
-                // MediaManager.destroy();
-            });
         }]
     };
 }
@@ -422,9 +454,9 @@ function ionAudioProgress() {
     }
 }
 
-angular.module('ionic-audio').directive('ionAudioProgressBar', ['MediaManager', ionAudioProgressBar]);
+angular.module('ionic-audio').directive('ionAudioProgressBar', ['MediaManager', '$rootScope', ionAudioProgressBar]);
 
-function ionAudioProgressBar(MediaManager) {
+function ionAudioProgressBar(MediaManager, $rootScope) {
     return {
         restrict: 'E',
         scope: {
@@ -447,6 +479,12 @@ function ionAudioProgressBar(MediaManager) {
             scope.track.progress = 0;
             scope.track.status = 0;
             scope.track.duration = -1;
+
+
+            var unbindProgressWatcher = $rootScope.$on('ionic-audio:progress', function(event, data){
+                scope.track.progress = data.progress;
+                scope.track.duration = data.duration;
+            });
         }
 
         if (!angular.isDefined(attrs.displayTime)) {
@@ -458,16 +496,19 @@ function ionAudioProgressBar(MediaManager) {
         }
 
         if (angular.isUndefined(scope.track)) {
+            console.log("track was undefined, so setting up new track + listener in progress");
             scope.track = {};
 
             // listens for track changes elsewhere in the DOM
-            unbindTrackListener = scope.$on('ionic-audio:trackChange', function (e, track) {
+            unbindTrackListener = scope.$on('ionic-audio:watchProperties', function (e, track) {
+                console.log("progress bar track change called");
                 scope.track = track;
             });
+
         }
 
         // disable slider if track is not playing
-        var unbindStatusListener = scope.$watch('track.status', function(status) {
+        var unbindStatusListener = scope.$watch('watchProperties.status', function(status) {
             // disable if track hasn't loaded
             slider.prop('disabled', status == 0);   //   Media.MEDIA_NONE
             
@@ -486,17 +527,17 @@ function ionAudioProgressBar(MediaManager) {
 
         scope.$on('$destroy', function() {
             unbindStatusListener();
-            if (angular.isDefined(unbindTrackListener)) {
-                unbindTrackListener();
+            if (angular.isDefined(unbindProgressWatcher)) {
+                unbindProgressWatcher();
             }
         });
 
         init();
     }
 }
-angular.module('ionic-audio').directive('ionAudioPlay', ['$ionicGesture', '$timeout',  '$rootScope', ionAudioPlay]);
+angular.module('ionic-audio').directive('ionAudioPlay', ['$ionicGesture', '$timeout',  '$rootScope','MediaManager', ionAudioPlay]);
 
-function ionAudioPlay($ionicGesture, $timeout, $rootScope) {
+function ionAudioPlay($ionicGesture, $timeout, $rootScope,MediaManager) {
     return {
         restrict: 'A',
         require: '^^ionAudioControls',
@@ -505,22 +546,15 @@ function ionAudioPlay($ionicGesture, $timeout, $rootScope) {
             console.log(controller);
             var isLoading, debounce, currentStatus = 0;
 
-            var init = function() {
-                isLoading = false;
-                element.addClass('ion-play');
-                element.removeClass('ion-pause');
-                element.text(attrs.textPlay);
-            };
-
             var setText = function() {
                 if (!attrs.textPlay || !attrs.textPause) return;
 
                 element.text((element.text() == attrs.textPlay ? attrs.textPause : attrs.textPlay));
             };
 
-            var togglePlaying = function(play) {
-                if (typeof play !== "undefined"){
-                    if (play){
+            var togglePlaying = function(showPlayButton) {
+                if (typeof showPlayButton !== "undefined"){
+                    if (showPlayButton){
                         element.removeClass('ion-pause');
                         element.addClass('ion-play');
                     } else {
@@ -534,6 +568,19 @@ function ionAudioPlay($ionicGesture, $timeout, $rootScope) {
                 setText();
             };
 
+            var init = function() {
+                isLoading = false;
+                element.addClass('ion-play');
+                element.removeClass('ion-pause');
+                element.text(attrs.textPlay);
+
+                if (MediaManager.isPlaying()){
+                    togglePlaying(false);
+                } else {
+                    togglePlaying(true);
+                }
+            };
+
             $ionicGesture.on('tap', function() {
                 // debounce while loading and multiple clicks
                 if (debounce || isLoading) {
@@ -543,15 +590,28 @@ function ionAudioPlay($ionicGesture, $timeout, $rootScope) {
 
                 if (currentStatus == 0) isLoading = true;
 
-                controller.play();
-                togglePlaying();
+                // controller.play();
+                // togglePlaying();
+                if (MediaManager.isPlaying()){
+                    MediaManager.pause();
+                    togglePlaying(true);
+                } else {
+                    MediaManager.resume();
+                    togglePlaying(false);
+                }
             }, element);
 
             $ionicGesture.on('doubletap', function() {
                 debounce = true;
             }, element);
 
-            var unbindStatusListener = scope.$parent.$watch('track.status', function (status) {
+// Media.MEDIA_NONE = 0;
+// Media.MEDIA_STARTING = 1;
+// Media.MEDIA_RUNNING = 2;
+// Media.MEDIA_PAUSED = 3;
+// Media.MEDIA_STOPPED = 4;
+
+            var unbindStatusListener = scope.$parent.$watch('watchProperties.status', function (status) {
                 $rootScope.$emit('ionic-audio:statusChange', status);
                 //  Media.MEDIA_NONE or Media.MEDIA_STOPPED
                 if (status == 0 || status == 4) {
@@ -563,19 +623,19 @@ function ionAudioPlay($ionicGesture, $timeout, $rootScope) {
                 currentStatus = status;
             });
 
-            var unbindPlaybackListener = scope.$parent.$watch('togglePlayback', function (newPlayback, oldPlayback) {
-                if (newPlayback == oldPlayback) return;
-                $timeout(function() {
-                    togglePlaying();
-                    controller.play();
-                },300)
-            });
+            // var unbindPlaybackListener = scope.$parent.$watch('togglePlayback', function (newPlayback, oldPlayback) {
+            //     if (newPlayback == oldPlayback) return;
+            //     $timeout(function() {
+            //         togglePlaying();
+            //         controller.play();
+            //     },300)
+            // });
 
             init();
 
             scope.$on('$destroy', function() {
                 unbindStatusListener();
-                unbindPlaybackListener();
+                // unbindPlaybackListener();
             });
         }
     }
@@ -621,7 +681,7 @@ function ionAudioControlsCtrl($scope, $element) {
           this.start();
         };
 
-        var unbindStatusListener = $scope.$parent.$watch('track.status', function (status) {
+        var unbindStatusListener = $scope.$parent.$watch('watchProperties.status', function (status) {
             switch (status) {
               case 1: // Media.MEDIA_STARTING
                   hasLoaded = false;

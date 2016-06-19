@@ -26,7 +26,7 @@ function ionAudioControlsCtrl($scope, $element) {
           this.start();
         };
 
-        var unbindStatusListener = $scope.$parent.$watch('track.status', function (status) {
+        var unbindStatusListener = $scope.$parent.$watch('watchProperties.status', function (status) {
             switch (status) {
               case 1: // Media.MEDIA_STARTING
                   hasLoaded = false;

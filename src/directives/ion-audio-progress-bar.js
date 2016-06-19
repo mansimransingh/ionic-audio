@@ -1,6 +1,6 @@
-angular.module('ionic-audio').directive('ionAudioProgressBar', ['MediaManager', ionAudioProgressBar]);
+angular.module('ionic-audio').directive('ionAudioProgressBar', ['MediaManager', '$rootScope', ionAudioProgressBar]);
 
-function ionAudioProgressBar(MediaManager) {
+function ionAudioProgressBar(MediaManager, $rootScope) {
     return {
         restrict: 'E',
         scope: {
@@ -23,6 +23,12 @@ function ionAudioProgressBar(MediaManager) {
             scope.track.progress = 0;
             scope.track.status = 0;
             scope.track.duration = -1;
+
+
+            var unbindProgressWatcher = $rootScope.$on('ionic-audio:progress', function(event, data){
+                scope.track.progress = data.progress;
+                scope.track.duration = data.duration;
+            });
         }
 
         if (!angular.isDefined(attrs.displayTime)) {
@@ -34,16 +40,19 @@ function ionAudioProgressBar(MediaManager) {
         }
 
         if (angular.isUndefined(scope.track)) {
+            console.log("track was undefined, so setting up new track + listener in progress");
             scope.track = {};
 
             // listens for track changes elsewhere in the DOM
-            unbindTrackListener = scope.$on('ionic-audio:trackChange', function (e, track) {
+            unbindTrackListener = scope.$on('ionic-audio:watchProperties', function (e, track) {
+                console.log("progress bar track change called");
                 scope.track = track;
             });
+
         }
 
         // disable slider if track is not playing
-        var unbindStatusListener = scope.$watch('track.status', function(status) {
+        var unbindStatusListener = scope.$watch('watchProperties.status', function(status) {
             // disable if track hasn't loaded
             slider.prop('disabled', status == 0);   //   Media.MEDIA_NONE
             
@@ -62,8 +71,8 @@ function ionAudioProgressBar(MediaManager) {
 
         scope.$on('$destroy', function() {
             unbindStatusListener();
-            if (angular.isDefined(unbindTrackListener)) {
-                unbindTrackListener();
+            if (angular.isDefined(unbindProgressWatcher)) {
+                unbindProgressWatcher();
             }
         });
 

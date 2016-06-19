@@ -5,6 +5,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         callbacks.onError = function(){};
         callbacks.onStatusChange = function(){};
         callbacks.onProgress = function(){};
+        callbacks.trackChanged = function(){};
     var vm = this;
 
     if (!$window.cordova && !$window.Media) {
@@ -42,7 +43,11 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
     };
 
     vm.getTrack = function(){
-        return currentTrack;
+        return tracks[currentTrackIndex];
+    };
+
+    vm.isPlaying = function(){
+        return isPlaying;
     };
 
      /*
@@ -59,6 +64,8 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         for (var i=0, l= tracklist.length; i < l; i++){
             vm.add(tracklist[i]);
         }
+        currentTrack = undefined;
+        trackChanged();
         if (play === true){
             vm.play(0);
         }
@@ -75,11 +82,13 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
          art: 'img/The_Police_Greatest_Hits.jpg'
      }
      */
-    vm.setCallbacks = function(playbackSuccess, playbackError, statusChange, progressChange){
+    vm.setCallbacks = function(playbackSuccess, playbackError, statusChange, progressChange, trackChanged){
+        console.log("set new callbacks");
         callbacks.onSuccess = playbackSuccess;
         callbacks.onError = playbackError;
         callbacks.onStatusChange = statusChange;
         callbacks.onProgress = progressChange;
+        callbacks.trackChanged = trackChanged;
     };
 
 
@@ -119,6 +128,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
                 vm.stop();
                 currentTrack = tracks[index];
                 currentTrackIndex = index;
+                trackChanged();
                 vm.playTrack();
             }
         } else {
@@ -128,6 +138,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
                 }
             } else {
                 currentTrack = tracks[currentTrackIndex];
+                trackChanged();
                 vm.playTrack();
             }
         }
@@ -192,6 +203,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
             currentMedia.release();
             currentMedia = undefined;
             currentTrack = undefined;
+            trackChanged();
         }
     };
 
@@ -229,7 +241,15 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         }
     };
 
+    var trackChanged = function(){
+        console.log("calling track changed");
+        if (angular.isFunction(callbacks.trackChanged)){
+            callbacks.trackChanged();
+        }
+    };
+
     function onProgress(progress, duration){
+        $rootScope.$broadcast('ionic-audio:progress', { progress:progress, duration:duration });
         if (angular.isFunction(callbacks.onProgress)){
             callbacks.onProgress(progress, duration);
         }

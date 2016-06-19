@@ -11,16 +11,53 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         require: 'ionMediaPlayer',
         link: function(scope, element, attr, controller){
              controller.hasOwnProgressBar = element.find('ion-audio-progress-bar').length > 0;
+             controller.updateTrack();
+             controller.setCallbacks();
         },
         controller: ['$scope', '$element', function($scope, $element){
             var controller = this;
+            $scope.watchProperties = {};
+                $scope.watchProperties.state = 0;
+                $scope.watchProperties.duration = -1;
+                $scope.watchProperties.progress = -1;
 
-            MediaManager.setCallbacks(playbackSuccess, null, statusChange, progressChange);
+            var playbackSuccess = function() {
+                controller.updateTrack();
+                $scope.track.status = 0;
+                $scope.track.progress = 0;
+            };
+            var statusChange = function(status) {
+                controller.updateTrack();
+                $scope.track.status = status;
+                $scope.watchProperties.status = status;
+                console.log("ion-media-player: status changed: "+status);
+            };
+            var progressChange = function(progress, duration) {
+                $scope.track.progress = progress;
+                $scope.track.duration = duration;
+                $scope.watchProperties.duration = duration;
+                $scope.watchProperties.progress = progress;
+                console.log("ion-media-player: preogress changed: "+progress +" : "+duration);
+            };
+            var notifyProgressBar = function() {
+                $rootScope.$broadcast('ionic-audio:trackChange', $scope.track);
+            };
 
-            var updateTrack = function(){
+            var trackChanged = function(){
+                controller.updateTrack();
+            };
+
+            this.setCallbacks = function(){
+                MediaManager.setCallbacks(playbackSuccess, null, statusChange, progressChange, trackChanged);
+            };
+            
+            this.updateTrack = function(){
                 $scope.track = MediaManager.getTrack();
-            };            
-            updateTrack();
+                notifyProgressBar();
+                console.log("updating track again");
+                console.log($scope.track);
+             };
+            this.updateTrack();
             // var init = function(newTrack, oldTrack) {
             //     if (!newTrack || !newTrack.url) return;
 
@@ -34,21 +71,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             //     }
             // };
 
-            var playbackSuccess = function() {
-                $scope.track.status = 0;
-                $scope.track.progress = 0;
-            };
-            var statusChange = function(status) {
-                $scope.track.status = status;
-                updateTrack();
-            };
-            var progressChange = function(progress, duration) {
-                $scope.track.progress = progress;
-                $scope.track.duration = duration;
-            };
-            var notifyProgressBar = function() {
-                $rootScope.$broadcast('ionic-audio:trackChange', $scope.track);
-            };
+
 
             this.seekTo = function(pos) {
                 MediaManager.seekTo(pos);
@@ -68,17 +91,6 @@ function ionMediaPlayer(MediaManager, $rootScope) {
 
                 return $scope.track.id;
             };
-
-            // var unbindWatcher = $scope.$watch('options.tracks', function(newTracks, oldTracks) {  
-                // if (newTrack === undefined) return;         
-                // MediaManager.stop();
-                // init(newTrack, oldTracks);
-            // });
-
-            $scope.$on('$destroy', function() {
-                // unbindWatcher();
-                // MediaManager.destroy();
-            });
         }]
     };
 }
