@@ -222,7 +222,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
 
     var onStatusChange = function(status) {
         this.status = status;
-        $rootScope.$broadcast('ionic-sudio:status', status);
+        $rootScope.$broadcast('ionic-audio:status', status);
         // Media.MEDIA_NONE = 0;
         // Media.MEDIA_STARTING = 1;
         // Media.MEDIA_RUNNING = 2;

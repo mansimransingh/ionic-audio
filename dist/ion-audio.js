@@ -261,7 +261,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
 
     var onStatusChange = function(status) {
         this.status = status;
-        $rootScope.$broadcast('ionic-sudio:status', status);
+        $rootScope.$broadcast('ionic-audio:status', status);
         // Media.MEDIA_NONE = 0;
         // Media.MEDIA_STARTING = 1;
         // Media.MEDIA_RUNNING = 2;
@@ -610,18 +610,34 @@ function ionAudioPlay($ionicGesture, $timeout, $rootScope,MediaManager) {
 // Media.MEDIA_RUNNING = 2;
 // Media.MEDIA_PAUSED = 3;
 // Media.MEDIA_STOPPED = 4;
-
-            var unbindStatusListener = scope.$parent.$watch('watchProperties.status', function (status) {
-                $rootScope.$emit('ionic-audio:statusChange', status);
-                //  Media.MEDIA_NONE or Media.MEDIA_STOPPED
+            
+            var unbindStatusListener = $rootScope.$on('ionic-audio:status', function(event, status){
                 if (status == 0 || status == 4) {
                     init();
                 } else if (status == 2) {   // Media.MEDIA_RUNNING
                     isLoading = false;
+                } else if (status == 1){
+                    isLoading = true;
                 }
 
-                currentStatus = status;
+                if (MediaManager.isPlaying()){
+                    togglePlaying(false);
+                } else {
+                    togglePlaying(true);
+                }   
             });
+
+            // scope.$parent.$watch('watchProperties.status', function (status) {
+            //     $rootScope.$emit('ionic-audio:statusChange', status);
+            //     //  Media.MEDIA_NONE or Media.MEDIA_STOPPED
+            //     if (status == 0 || status == 4) {
+            //         init();
+            //     } else if (status == 2) {   // Media.MEDIA_RUNNING
+            //         isLoading = false;
+            //     }
+
+            //     currentStatus = status;
+            // });
 
             // var unbindPlaybackListener = scope.$parent.$watch('togglePlayback', function (newPlayback, oldPlayback) {
             //     if (newPlayback == oldPlayback) return;
