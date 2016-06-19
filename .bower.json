@@ -6,8 +6,7 @@
   "license": "MIT",
   "private": false,
   "main": [
-    "dist/ion-audio.js",
-    "dist/ion-audio.min.js"
+    "dist/ion-audio.js"
   ],
   "dependencies": {
     "angular": "1.4.3",
