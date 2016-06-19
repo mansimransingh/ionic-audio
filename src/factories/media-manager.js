@@ -241,4 +241,22 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
         tracks.splide(index, 0, track);
         return tracks;
     }
+
+    function removeTrack(index){
+        if (index === currentTrackIndex){
+            // if its the same index - stop music
+            // remove current track
+            // dont change index and play music
+            stop();
+            tracks.splice(index, 1);
+            play(index);
+        } else if (index < currentTrackIndex){
+            // if index is less than current index
+            currentTrackIndex -= currentTrackIndex;
+            tracks.splice(index, 1);
+        } else {
+            // index > currentTrackInde
+            tracks.splice(index, 1);
+        }
+    }
 }]);
