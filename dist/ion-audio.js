@@ -38,7 +38,7 @@ angular.module('ionic-audio').filter('duration', ['$filter', function ($filter) 
 
 
 angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', '$window', '$rootScope', function ($interval, $timeout, $window, $rootScope) {
-    var tracks = [], currentTrack, currentMedia, playerTimer, currentTrackIndex=0, isPlaying;
+    var tracks = [], currentTrack, currentMedia, playerTimer, currentTrackIndex=0, isPlaying, onSuccess, onError, onStatusChange, onProgress;
 
     if (!$window.cordova && !$window.Media) {
         console.log("ionic-audio: missing Cordova Media plugin. Have you installed the plugin? \nRun 'ionic plugin add cordova-plugin-media'");
@@ -85,7 +85,7 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
         tracks = [];
         currentTrackIndex = 0;g
         for (var i=0, l=tracklist.length; i < l; i++){
-            add(tracklist[i], playbackSuccess, playbackError, statusChange, progressChange);
+            add(tracklist[i]);
         }
 
         $rootScope.$broadcast('ionic-audio:setTracks', getPlaylist());
@@ -101,17 +101,25 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
          art: 'img/The_Police_Greatest_Hits.jpg'
      }
      */
-    function add(track, playbackSuccess, playbackError, statusChange, progressChange) {
+    function setCallbacks(playbackSuccess, playbackError, statusChange, progressChange){
+        onSuccess = playbackSuccess;
+        onError = playbackError;
+        onStatusChange = statusChange;
+        onProgress = progressChange;
+    }
+
+
+    function add(track) {
         if (!track.url) {
             console.log('ionic-audio: missing track url');
             return;
         }
 
         angular.extend(track, {
-            onSuccess: playbackSuccess,
-            onError: playbackError,
-            onStatusChange: statusChange,
-            onProgress: progressChange,
+            onSuccess: onSuccess,
+            onError: onError,
+            onStatusChange: onStatusChange,
+            onProgress: onProgress,
             status: 0,
             duration: -1,
             progress: 0
@@ -316,7 +324,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         controller: ['$scope', '$element', function($scope, $element){
             var controller = this;
 
-
+            MediaManager.setCallbacks(playbackSuccess, null, statusChange, progressChange);
 
             // var init = function(newTrack, oldTrack) {
             //     if (!newTrack || !newTrack.url) return;

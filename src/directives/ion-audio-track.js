@@ -15,7 +15,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         controller: ['$scope', '$element', function($scope, $element){
             var controller = this;
 
-
+            MediaManager.setCallbacks(playbackSuccess, null, statusChange, progressChange);
 
             // var init = function(newTrack, oldTrack) {
             //     if (!newTrack || !newTrack.url) return;
