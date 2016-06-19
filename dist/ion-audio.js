@@ -42,7 +42,7 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
 
     if (!$window.cordova && !$window.Media) {
         console.log("ionic-audio: missing Cordova Media plugin. Have you installed the plugin? \nRun 'ionic plugin add cordova-plugin-media'");
-        return null;
+        // return null;
     }
 
     return {
@@ -79,7 +79,7 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
         if its a single track, it should still arrive in a list
         if new tracks are set stop everything else and broadcast 
      */
-    function setTracks(tracklist, playbackSuccess, playbackError, statusChange, progressChange){
+    function setTracks(tracklist){
         stop(); // stop current playing track
         destroy();
         tracks = [];
