@@ -87,15 +87,15 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         if new tracks are set stop everything else and broadcast 
      */
     vm.setTracks = function(tracklist){
-        stop(); // stop current playing track
-        destroy();
+        vm.stop(); // stop current playing track
+        vm.destroy();
         tracks = [];
         currentTrackIndex = 0;
         for (var i=0, l=tracklist.length; i < l; i++){
-            add(tracklist[i]);
+            vm.add(tracklist[i]);
         }
 
-        $rootScope.$broadcast('ionic-audio:setTracks', getPlaylist());
+        $rootScope.$broadcast('ionic-audio:setTracks', vm.getPlaylist());
      };
 
     /*
@@ -142,26 +142,26 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
 
     vm.play = function(index) {
         if (typeof index !== "undefined"){
-            if (index > getPlaylistSize() - 1) { return; }
+            if (index > vm.getPlaylistSize() - 1) { return; }
 
             if (currentTrack && currentTrackIndex == index){
                 if (!isPlaying){
-                    resume();
+                    vm.resume();
                 }
             } else {
-                stop();
+                vm.stop();
                 currentTrack = tracks[index];
                 currentTrackIndex = index;
-                playTrack();
+                vm.playTrack();
             }
         } else {
             if (currentTrack){
                 if (!isPlaying){
-                    resume();
+                    vm.resume();
                 }
             } else {
                 currentTrack = tracks[currentTrackIndex];
-                playTrack();
+                vm.playTrack();
             }
         }
     };
@@ -184,7 +184,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         releaseMedia();
     };
 
-    function playTrack() {
+    vm.playTrack = function() {
         console.log('ionic-audio: playing track ' + currentTrack.title);
 
         currentMedia = createMedia(currentTrack);
@@ -208,7 +208,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         }
     };
 
-    function createMedia(track) {
+    vm.createMedia = function(track) {
         if (!track.url) {
             console.log('ionic-audio: missing track url');
             return undefined;
@@ -218,19 +218,19 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
             angular.bind(track, onSuccess),
             angular.bind(track, onError),
             angular.bind(track, onStatusChange));
-    }
+    };
 
-    function releaseMedia() {
+    vm.releaseMedia = function() {
         if (angular.isDefined(currentMedia)) {
             currentMedia.release();
             currentMedia = undefined;
             currentTrack = undefined;
         }
-    }
+    };
 
     var onSuccess = function() {
         stopTimer();
-        releaseMedia();
+        vm.releaseMedia();
 
         if (angular.isFunction(callbacks.onSuccess))
             callbacks.onSuccess();
