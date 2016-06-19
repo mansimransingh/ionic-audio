@@ -17,6 +17,10 @@ function ionMediaPlayer(MediaManager, $rootScope) {
 
             MediaManager.setCallbacks(playbackSuccess, null, statusChange, progressChange);
 
+            var updateTrack = function(){
+                $scope.track = MediaManager.getTrack();
+            };            
+            updateTrack();
             // var init = function(newTrack, oldTrack) {
             //     if (!newTrack || !newTrack.url) return;
 
@@ -36,6 +40,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             };
             var statusChange = function(status) {
                 $scope.track.status = status;
+                updateTrack();
             };
             var progressChange = function(progress, duration) {
                 $scope.track.progress = progress;
@@ -56,7 +61,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             this.start = function() {
                 if (!$scope.track || !$scope.track.url) return;
 
-                MediaManager.play($scope.track.id);
+                MediaManager.play();
 
                 // notify global progress bar if detached from track
                 if (!controller.hasOwnProgressBar) notifyProgressBar();

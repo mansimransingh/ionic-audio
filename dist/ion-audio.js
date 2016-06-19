@@ -80,13 +80,17 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         return tracks;
     };
 
+    vm.getTrack = function(){
+        return currentTrack;
+    };
+
      /*
         this is the most important function of all
         we will add the whole list
         if its a single track, it should still arrive in a list
         if new tracks are set stop everything else and broadcast 
      */
-    vm.setTracks = function(tracklist){
+    vm.setTracks = function(tracklist, play){
         vm.stop(); // stop current playing track
         vm.destroy();
         tracks = [];
@@ -94,7 +98,9 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         for (var i=0, l=tracklist.length; i < l; i++){
             vm.add(tracklist[i]);
         }
-
+        if (play === true){
+            vm.play(0);
+        }
         $rootScope.$broadcast('ionic-audio:setTracks', vm.getPlaylist());
      };
 
@@ -181,13 +187,13 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
 
     vm.destroy = function() {
         stopTimer();
-        releaseMedia();
+        vm.releaseMedia();
     };
 
     vm.playTrack = function() {
         console.log('ionic-audio: playing track ' + currentTrack.title);
 
-        currentMedia = createMedia(currentTrack);
+        currentMedia = vm.createMedia(currentTrack);
         currentMedia.play();
 
         startTimer();
@@ -254,11 +260,17 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
             callbacks.onStatusChange(status);
     };
 
-    function stopTimer() {
+    var stopTimer = function() {
         $rootScope.$broadcast('ionic-audio:startStopToggle', "stopped");
         if (angular.isDefined(playerTimer)) {
             $interval.cancel(playerTimer);
             playerTimer = undefined;
+        }
+    };
+
+    function onProgress(progress, duration){
+        if (angular.isFunction(callbacks.onProgress)){
+            callbacks.onProgress(progress, duration);
         }
     }
 
@@ -333,6 +345,10 @@ function ionMediaPlayer(MediaManager, $rootScope) {
 
             MediaManager.setCallbacks(playbackSuccess, null, statusChange, progressChange);
 
+            var updateTrack = function(){
+                $scope.track = MediaManager.getTrack();
+            };            
+            updateTrack();
             // var init = function(newTrack, oldTrack) {
             //     if (!newTrack || !newTrack.url) return;
 
@@ -352,6 +368,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             };
             var statusChange = function(status) {
                 $scope.track.status = status;
+                updateTrack();
             };
             var progressChange = function(progress, duration) {
                 $scope.track.progress = progress;
@@ -372,7 +389,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             this.start = function() {
                 if (!$scope.track || !$scope.track.url) return;
 
-                MediaManager.play($scope.track.id);
+                MediaManager.play();
 
                 // notify global progress bar if detached from track
                 if (!controller.hasOwnProgressBar) notifyProgressBar();

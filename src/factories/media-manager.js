@@ -41,13 +41,17 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         return tracks;
     };
 
+    vm.getTrack = function(){
+        return currentTrack;
+    };
+
      /*
         this is the most important function of all
         we will add the whole list
         if its a single track, it should still arrive in a list
         if new tracks are set stop everything else and broadcast 
      */
-    vm.setTracks = function(tracklist){
+    vm.setTracks = function(tracklist, play){
         vm.stop(); // stop current playing track
         vm.destroy();
         tracks = [];
@@ -55,7 +59,9 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         for (var i=0, l=tracklist.length; i < l; i++){
             vm.add(tracklist[i]);
         }
-
+        if (play === true){
+            vm.play(0);
+        }
         $rootScope.$broadcast('ionic-audio:setTracks', vm.getPlaylist());
      };
 
@@ -142,13 +148,13 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
 
     vm.destroy = function() {
         stopTimer();
-        releaseMedia();
+        vm.releaseMedia();
     };
 
     vm.playTrack = function() {
         console.log('ionic-audio: playing track ' + currentTrack.title);
 
-        currentMedia = createMedia(currentTrack);
+        currentMedia = vm.createMedia(currentTrack);
         currentMedia.play();
 
         startTimer();
@@ -215,11 +221,17 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
             callbacks.onStatusChange(status);
     };
 
-    function stopTimer() {
+    var stopTimer = function() {
         $rootScope.$broadcast('ionic-audio:startStopToggle', "stopped");
         if (angular.isDefined(playerTimer)) {
             $interval.cancel(playerTimer);
             playerTimer = undefined;
+        }
+    };
+
+    function onProgress(progress, duration){
+        if (angular.isFunction(callbacks.onProgress)){
+            callbacks.onProgress(progress, duration);
         }
     }
 
