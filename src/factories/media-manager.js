@@ -56,7 +56,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         vm.destroy();
         tracks = [];
         currentTrackIndex = 0;
-        for (var i=0, l=tracklist.length; i < l; i++){
+        for (var i=0, l= tracklist.length; i < l; i++){
             vm.add(tracklist[i]);
         }
         if (play === true){
@@ -203,9 +203,9 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
             callbacks.onSuccess();
     };
 
-    var onError = function() {
+    var onError = function(err) {
         if (angular.isFunction(callbacks.onError))
-            callbacks.onError();
+            callbacks.onError(err);
     };
 
     var onStatusChange = function(status) {
