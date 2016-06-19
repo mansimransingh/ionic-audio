@@ -17,7 +17,9 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
 
         getPlaylistSize: getPlaylistSize,
         getPlaylistPosition: playlistPosition,
-        getPlaylist: getPlaylist
+        getPlaylist: getPlaylist,
+
+        insertTrackAtIndex: insertTrackAtIndex
     };
 
     function getPlaylistSize(){
@@ -42,7 +44,7 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
         stop(); // stop current playing track
         destroy();
         tracks = [];
-        currentTrackIndex = 0;
+        currentTrackIndex = 0;g
         for (var i=0, l=tracklist.length; i < l; i++){
             add(tracklist[i], playbackSuccess, playbackError, statusChange, progressChange);
         }
@@ -233,5 +235,10 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
                 currentTrack.onProgress(currentTrack.progress, currentTrack.duration);
 
         }, 1000);
+    }
+
+    function insertTrackAtIndex(index, track){
+        tracks.splide(index, 0, track);
+        return tracks;
     }
 }]);

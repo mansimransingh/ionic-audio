@@ -6,7 +6,6 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         template: '<ng-transclude></ng-transclude>',
         restrict: 'E',
         scope: {
-            tracks: '=',
             togglePlayback: '='
         },
         require: 'ionMediaPlayer',
@@ -16,8 +15,8 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         controller: ['$scope', '$element', function($scope, $element){
             var controller = this;
 
-            
-            
+
+
             // var init = function(newTrack, oldTrack) {
             //     if (!newTrack || !newTrack.url) return;
 
