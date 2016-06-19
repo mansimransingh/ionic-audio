@@ -45,7 +45,7 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
         stop(); // stop current playing track
         destroy();
         tracks = [];
-        currentTrackIndex = 0;g
+        currentTrackIndex = 0;
         for (var i=0, l=tracklist.length; i < l; i++){
             add(tracklist[i]);
         }
