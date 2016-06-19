@@ -17,26 +17,6 @@ limitations under the License.
 */
 angular.module('ionic-audio', ['ionic']);
 
-angular.module('ionic-audio').filter('time', function () {
-	var addLeadingZero = function(n) {
-        return (new Array(2).join('0')+n).slice(-2)
-    };
-
-    return function(input) {
-        input = input || 0;
-        var t = parseInt(input);
-        return addLeadingZero(Math.floor(t / 60)) + ':' + addLeadingZero(t % 60);
-    };
-});
-
-
-angular.module('ionic-audio').filter('duration', ['$filter', function ($filter) {
-    return function (input) {
-        return (input > 0) ? $filter('time')(input) : '';
-    };
-}]);
-
-
 angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', '$window', '$rootScope', function ($interval, $timeout, $window, $rootScope) {
     var tracks = [], currentTrack, currentMedia, playerTimer, currentTrackIndex=0, isPlaying, onSuccess, onError, onStatusChange, onProgress;
 
@@ -84,7 +64,7 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
         stop(); // stop current playing track
         destroy();
         tracks = [];
-        currentTrackIndex = 0;g
+        currentTrackIndex = 0;
         for (var i=0, l=tracklist.length; i < l; i++){
             add(tracklist[i]);
         }
@@ -308,6 +288,26 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
         }
     }
 }]);
+angular.module('ionic-audio').filter('time', function () {
+	var addLeadingZero = function(n) {
+        return (new Array(2).join('0')+n).slice(-2)
+    };
+
+    return function(input) {
+        input = input || 0;
+        var t = parseInt(input);
+        return addLeadingZero(Math.floor(t / 60)) + ':' + addLeadingZero(t % 60);
+    };
+});
+
+
+angular.module('ionic-audio').filter('duration', ['$filter', function ($filter) {
+    return function (input) {
+        return (input > 0) ? $filter('time')(input) : '';
+    };
+}]);
+
+
 angular.module('ionic-audio').directive('ionMediaPlayer', ['MediaManager', '$rootScope', ionMediaPlayer]);
 
 function ionMediaPlayer(MediaManager, $rootScope) {
