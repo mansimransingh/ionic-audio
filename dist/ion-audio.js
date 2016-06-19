@@ -55,10 +55,11 @@ angular.module('ionic-audio').factory('MediaManager', ['$interval', '$timeout', 
         destroy: destroy,
 
         getPlaylistSize: getPlaylistSize,
-        getPlaylistPosition: playlistPosition,
+        getPlaylistPosition: getPlaylistPosition,
         getPlaylist: getPlaylist,
 
-        insertTrackAtIndex: insertTrackAtIndex
+        insertTrackAtIndex: insertTrackAtIndex,
+        setCallbacks: setCallbacks
     };
 
     function getPlaylistSize(){
@@ -572,7 +573,7 @@ function ionAudioDuration() {
 angular.module('ionic-audio').directive('ionAudioControls', function() {
     return {
       restrict: 'EA',
-      require: ['ionAudioControls', '^^ionAudioTrack'],
+      require: ['ionAudioControls', '^^ionMediaPlayer'],
       controller: ['$scope', '$element', ionAudioControlsCtrl],
       link: link
     };
@@ -588,7 +589,7 @@ function ionAudioControlsCtrl($scope, $element) {
           }
         };
 
-        toggleSpinner(true);
+        this.toggleSpinner(true);
 
         this.play = function() {
           if (!hasLoaded) {

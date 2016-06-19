@@ -1,7 +1,7 @@
 angular.module('ionic-audio').directive('ionAudioControls', function() {
     return {
       restrict: 'EA',
-      require: ['ionAudioControls', '^^ionAudioTrack'],
+      require: ['ionAudioControls', '^^ionMediaPlayer'],
       controller: ['$scope', '$element', ionAudioControlsCtrl],
       link: link
     };
@@ -17,7 +17,7 @@ function ionAudioControlsCtrl($scope, $element) {
           }
         };
 
-        toggleSpinner(true);
+        this.toggleSpinner(true);
 
         this.play = function() {
           if (!hasLoaded) {
