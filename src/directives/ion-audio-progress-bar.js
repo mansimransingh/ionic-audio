@@ -24,7 +24,6 @@ function ionAudioProgressBar(MediaManager, $rootScope) {
             scope.track.status = 0;
             scope.track.duration = -1;
 
-
             var unbindProgressWatcher = $rootScope.$on('ionic-audio:progress', function(event, data){
                 scope.track.progress = data.progress;
                 scope.track.duration = data.duration;
@@ -35,28 +34,17 @@ function ionAudioProgressBar(MediaManager, $rootScope) {
             element.find('ion-audio-progress').remove();
             element.find('ion-audio-duration').remove();
         }
+        
         if (!angular.isDefined(attrs.displayInfo)) {
             element.find('h2').remove();
         }
 
-        if (angular.isUndefined(scope.track)) {
-            console.log("track was undefined, so setting up new track + listener in progress");
-            scope.track = {};
-
-            // listens for track changes elsewhere in the DOM
-            unbindTrackListener = scope.$on('ionic-audio:watchProperties', function (e, track) {
-                console.log("progress bar track change called");
-                scope.track = track;
-            });
-
-        }
-
         // disable slider if track is not playing
-        var unbindStatusListener = scope.$watch('watchProperties.status', function(status) {
-            // disable if track hasn't loaded
-            slider.prop('disabled', status == 0);   //   Media.MEDIA_NONE
+        // var unbindStatusListener = scope.$watch('watchProperties.status', function(status) {
+        //     // disable if track hasn't loaded
+        //     slider.prop('disabled', status == 0);   //   Media.MEDIA_NONE
             
-        });
+        // });
 
         // hide/show track info if available
         scope.displayTrackInfo = function() {
@@ -65,12 +53,11 @@ function ionAudioProgressBar(MediaManager, $rootScope) {
 
         // handle track seek-to
         scope.sliderRelease = function() {
-            var pos = scope.track.progress;
-            MediaManager.seekTo(pos);
+            MediaManager.seekTo(scope.track.progress);
         };
 
         scope.$on('$destroy', function() {
-            unbindStatusListener();
+            // unbindStatusListener();
             if (angular.isDefined(unbindProgressWatcher)) {
                 unbindProgressWatcher();
             }

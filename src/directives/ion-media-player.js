@@ -16,10 +16,6 @@ function ionMediaPlayer(MediaManager, $rootScope) {
         },
         controller: ['$scope', '$element', function($scope, $element){
             var controller = this;
-            $scope.watchProperties = {};
-                $scope.watchProperties.state = 0;
-                $scope.watchProperties.duration = -1;
-                $scope.watchProperties.progress = -1;
 
             var playbackSuccess = function() {
                 controller.updateTrack();
@@ -29,15 +25,11 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             var statusChange = function(status) {
                 controller.updateTrack();
                 $scope.track.status = status;
-                $scope.watchProperties.status = status;
                 console.log("ion-media-player: status changed: "+status);
             };
             var progressChange = function(progress, duration) {
                 $scope.track.progress = progress;
                 $scope.track.duration = duration;
-                $scope.watchProperties.duration = duration;
-                $scope.watchProperties.progress = progress;
-                console.log("ion-media-player: preogress changed: "+progress +" : "+duration);
             };
             var notifyProgressBar = function() {
                 $rootScope.$broadcast('ionic-audio:trackChange', $scope.track);
@@ -57,21 +49,8 @@ function ionMediaPlayer(MediaManager, $rootScope) {
                 console.log("updating track again");
                 console.log($scope.track);
              };
+             
             this.updateTrack();
-            // var init = function(newTrack, oldTrack) {
-            //     if (!newTrack || !newTrack.url) return;
-
-            //     newTrack.progress = 0;
-            //     newTrack.status = 0;
-            //     newTrack.duration = -1;
-            //     if (oldTrack && oldTrack.id !== undefined) newTrack.id = oldTrack.id; 
-
-            //     if (MediaManager) {
-            //         MediaManager.add(newTrack, playbackSuccess, null, statusChange, progressChange);
-            //     }
-            // };
-
-
 
             this.seekTo = function(pos) {
                 MediaManager.seekTo(pos);

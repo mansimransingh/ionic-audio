@@ -172,6 +172,9 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
     }
 
     vm.resume = function() {
+        if (typeof currentTrack === "undefined"){
+            return;
+        }
         console.log('ionic-audio: resuming track ' + currentTrack.title);
         currentMedia.play();
         startTimer();
@@ -208,11 +211,16 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
     };
 
     var onSuccess = function() {
+        // media has finished
         stopTimer();
         vm.releaseMedia();
 
         if (angular.isFunction(callbacks.onSuccess))
             callbacks.onSuccess();
+
+        if (typeof tracks[currentTrackIndex + 1] !== "undefined"){
+            vm.play(currentTrackIndex+1); // play next track;
+        }
     };
 
     var onError = function(err) {
