@@ -46,6 +46,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         callbacks.onProgress = function(){};
         callbacks.trackChanged = function(){};
     var vm = this;
+    var dontPlayNextTrack = false;
 
     if (!$window.cordova && !$window.Media) {
         console.log("ionic-audio: missing Cordova Media plugin. Have you installed the plugin? \nRun 'ionic plugin add cordova-plugin-media'");
@@ -122,7 +123,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
      }
      */
     vm.setCallbacks = function(playbackSuccess, playbackError, statusChange, progressChange, trackChanged){
-        console.log("set new callbacks");
+        console.log("ionic-audio: setting new callbacks");
         callbacks.onSuccess = playbackSuccess;
         callbacks.onError = playbackError;
         callbacks.onStatusChange = statusChange;
@@ -259,7 +260,9 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
             callbacks.onSuccess();
 
         if (typeof tracks[currentTrackIndex + 1] !== "undefined"){
-            vm.play(currentTrackIndex+1); // play next track;
+            if (!dontPlayNextTrack){
+                vm.play(currentTrackIndex+1); // play next track;
+            }
         }
     };
 
@@ -403,8 +406,6 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             this.updateTrack = function(){
                 $scope.track = MediaManager.getTrack();
                 notifyProgressBar();
-                console.log("updating track again");
-                console.log($scope.track);
              };
              
             this.updateTrack();

@@ -46,8 +46,6 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             this.updateTrack = function(){
                 $scope.track = MediaManager.getTrack();
                 notifyProgressBar();
-                console.log("updating track again");
-                console.log($scope.track);
              };
              
             this.updateTrack();
