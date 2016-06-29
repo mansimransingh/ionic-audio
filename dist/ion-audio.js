@@ -151,8 +151,9 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
         //     return track.id;
         // }
 
-        track.id  = tracks.push(track) - 1; // a playlist can have same track multiple times
-        return track.id;
+        // track.id  = tracks.push(track) - 1; // a playlist can have same track multiple times
+        tracks.push(track);
+        return tracks.length;
     };
 
     vm.play = function(index) {
@@ -332,7 +333,7 @@ angular.module('ionic-audio').service('MediaManager', ['$interval', '$timeout', 
     }
 
     vm.insertTrackAtIndex = function(index, track){
-        tracks.splide(index, 0, track);
+        tracks.splice(index, 0, track);
         return tracks;
     }
 
