@@ -18,10 +18,7 @@ function ionAudioPlay($ionicGesture, $timeout, $rootScope, MediaManager) {
             };
 
             var debounce, currentStatus = 0;
-
-            console.log("logging audio-play controller");
-            console.log(controller);
-
+            
             var togglePlaying = function(showPlayButton) {
                 if (showPlayButton){
                     element.removeClass('ion-pause');

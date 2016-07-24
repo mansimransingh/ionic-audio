@@ -25,7 +25,6 @@ function ionMediaPlayer(MediaManager, $rootScope) {
             var statusChange = function(status) {
                 controller.updateTrack();
                 $scope.track.status = status;
-                console.log("ion-media-player: status changed: "+status);
             };
             var progressChange = function(progress, duration) {
                 $scope.track.progress = progress;
@@ -37,6 +36,7 @@ function ionMediaPlayer(MediaManager, $rootScope) {
 
             var trackChanged = function(){
                 controller.updateTrack();
+                $rootScope.$broadcast('ionic-audio:trackIndexUpdate', MediaManager.getPlaylistPosition());
             };
 
             this.setCallbacks = function(){
